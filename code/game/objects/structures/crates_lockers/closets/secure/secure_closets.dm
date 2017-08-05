@@ -44,6 +44,8 @@
 	..()
 
 /obj/structure/closet/secure_closet/proc/togglelock(mob/user as mob)
+	if(!Adjacent(user))
+		return
 	if(src.opened)
 		to_chat(user, "<span class='notice'>Close the locker first.</span>")
 		return
@@ -74,6 +76,9 @@
 			playsound(src.loc, "sparks", 50, 1)
 	else
 		togglelock(user)
+
+/obj/structure/closet/secure_closet/AltClick(mob/user as mob)
+	togglelock(user)
 
 /obj/structure/closet/secure_closet/slice_into_parts(obj/item/weapon/weldingtool/WT, mob/user)
 	to_chat(user, "<span class='notice'>\The [src] is too strong to be taken apart.</span>")
@@ -116,7 +121,7 @@
 	else
 		to_chat(usr, "<span class='warning'>This mob type can't use this verb.</span>")
 
-/obj/structure/closet/secure_closet/update_icon()//Putting the welded stuff in updateicon() so it's easy to overwrite for special cases (Fridges, cabinets, and whatnot)
+/obj/structure/closet/secure_closet/update_icon()//Putting the welded stuff in update_icon() so it's easy to overwrite for special cases (Fridges, cabinets, and whatnot)
 	overlays.Cut()
 
 	if(!opened)

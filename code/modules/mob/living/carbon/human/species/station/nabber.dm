@@ -33,6 +33,8 @@
 	icobase = 'icons/mob/human_races/r_nabber.dmi'
 	deform = 'icons/mob/human_races/r_nabber.dmi'
 
+	blood_mask = 'icons/mob/human_races/masks/blood_nabber.dmi'
+
 	has_floating_eyes = 1
 
 	darksight = 8
@@ -52,7 +54,13 @@
 	appearance_flags = HAS_SKIN_COLOR | HAS_EYE_COLOR
 	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN
 
+	bump_flag = HEAVY
+	push_flags = ALLMOBS
+	swap_flags = ALLMOBS
+
 	breathing_organ = BP_TRACH
+
+	move_trail = /obj/effect/decal/cleanable/blood/tracks/snake
 
 	var/list/eye_overlays = list()
 
@@ -108,6 +116,49 @@
 
 /datum/species/nabber/get_blood_name()
 	return "haemolymph"
+
+/datum/species/nabber/can_overcome_gravity(var/mob/living/carbon/human/H)
+	var/datum/gas_mixture/mixture = H.loc.return_air()
+
+	if(mixture)
+		var/pressure = mixture.return_pressure()
+		if(pressure > 50)
+			var/turf/below = GetBelow(H)
+			var/turf/T = H.loc
+			if(!T.CanZPass(H, DOWN) || !below.CanZPass(H, DOWN))
+				return TRUE
+
+	return FALSE
+
+
+// Nabbers will only fall when there isn't enough air pressure for them to keep themselves aloft.
+/datum/species/nabber/can_fall(var/mob/living/carbon/human/H)
+	var/datum/gas_mixture/mixture = H.loc.return_air()
+
+	if(mixture)
+		var/pressure = mixture.return_pressure()
+		if(pressure > 80)
+			return FALSE
+
+	return TRUE
+
+// Even when nabbers do fall, if there's enough air pressure they won't hurt themselves.
+/datum/species/nabber/handle_fall_special(var/mob/living/carbon/human/H, var/turf/landing)
+
+	var/datum/gas_mixture/mixture = H.loc.return_air()
+
+	if(mixture)
+		var/pressure = mixture.return_pressure()
+		if(pressure > 50)
+			if(istype(landing, /turf/simulated/open))
+				H.visible_message("\The [src] descends from the deck above through \the [landing]!", "Your wings slow your descent.")
+			else
+				H.visible_message("\The [src] buzzes down from \the [landing], wings slowing their descent!", "You land on \the [landing], folding your wings.")
+
+			return TRUE
+
+	return FALSE
+
 
 /datum/species/nabber/can_shred(var/mob/living/carbon/human/H, var/ignore_intent)
 	if(!H.handcuffed || H.buckled)
